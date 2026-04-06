@@ -1,55 +1,50 @@
-const bcrypt=require('bcrypt');
-const jwt=require('jsonwebtoken');
-const authModel=require('../models/authModel')
+const userModel = require("../models/userModel");
+const authModel = require("../models/authModel");
+const jwtUtils = require("../utils/jwt");
 
-const register=async(req,res)=>{
-    const {email,password,role}=req.body;
+// login (بدون OTP حالياً)
+const login = async (req, res) => {
+  try {
+    const { name, phone, role_id } = req.body;
 
-    const hashedPassword=await bcrypt.hash(password,10)
+    let user = await userModel.findUserByPhone(phone);
 
-    await authModel.createEmployee({
-        email,
-        password:hashedPassword,
-        role
-    })
-    res.json({message:'Employee registered successfully!!!'})
-
-}
-
-const login=async(req,res)=>{
-    const {email,password}=req.body;
-    const employee=await authModel.getEmployeeByEmail(email);
-
-    if(!employee){
-        return res.status(401).json({message:'Invalid Email or password' });
+    if (!user) {
+      user = await userModel.createUser(name, phone, role_id);
     }
-    const isMatch =await bcrypt.compare(password,employee.password)
 
-    if(!isMatch){
-        return res.status(401).json({message:'Invalid Email or password' });
+    const accessToken = jwtUtils.generateAccessToken(user);
+    const refreshToken = jwtUtils.generateRefreshToken(user);
 
-    }
-    const token =jwt.sign(
-     {
-        id:employee.id,
-        email:employee.email,
-        role:employee.role
+    await authModel.saveRefreshToken(user.id, refreshToken);
 
-     } ,
-     process.env.JWT_SECRET,
-     {expiresIn:'1h'}
+    res.json({ accessToken, refreshToken, user });
 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
+// refresh token
+const refresh = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    const stored = await authModel.findToken(token);
+    if (!stored) return res.sendStatus(403);
+
+    const decoded = require("jsonwebtoken").verify(
+      token,
+      process.env.JWT_SECRET
     );
-    res.cookie('token',token,{
-        httpOnly:true
-    });
-    
-    res.json({token})
 
-}
+    const newAccess = jwtUtils.generateAccessToken({ id: decoded.id });
 
-module.exports={
-    register,
-    login
-}
+    res.json({ accessToken: newAccess });
+
+  } catch {
+    res.sendStatus(403);
+  }
+};
+
+module.exports = { login, refresh };

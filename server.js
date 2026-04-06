@@ -1,39 +1,14 @@
 const express = require('express');
 require('dotenv').config();
 const path = require('path');
-
+const authRoutes = require("./routes/authRoutes");
 const app = express();
 
 // Database connection
 require('./config/database');
 app.use(express.json());
 
-//Test 
-app.get('/test', (req, res) => {
-    res.json({ message: 'Backend working' });
-});
-//auth
-// POST
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
-
-  // تجربة مبدئية (بعدين نربط DB)
-  if (email === 'test@test.com' && password === '1234') {
-    return res.json({
-      success: true,
-      token: 'abc123', // لاحقًا JWT
-      user: {
-        id: 1,
-        email: email
-      }
-    });
-  }
-
-  return res.status(401).json({
-    success: false,
-    message: 'Invalid credentials'
-  });
-});
+app.use("/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Bridge Backend Running");
