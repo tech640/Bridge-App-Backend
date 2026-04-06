@@ -1,6 +1,6 @@
 
 const { Pool }  = require('pg') ; 
-require('dotenv').config(); 
+// require('dotenv').config(); 
 const pool = new Pool({
   database:process.env.DB_NAME, 
     host:process.env.BD_HOST,
@@ -15,6 +15,13 @@ const initializeDatabase = async() =>{
         //test connection 
         const client = await pool.connect(); 
         console.log('Connected to PG Database '); 
+        //Add Column
+        // await pool.query(`
+        //     ALTER TABLE users
+        //     ADD COLUMN role_id INT REFERENCES roles(id);
+        //   `);
+      
+        //   console.log("Column added ✅");
         //Create table Role if don't exist
         await client.query(`
           CREATE TABLE IF NOT EXISTS roles (
