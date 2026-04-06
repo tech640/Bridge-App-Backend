@@ -1,5 +1,6 @@
 
 const { Pool }  = require('pg') ; 
+require('dotenv').config(); 
 const pool = new Pool({
   database:process.env.DB_NAME, 
     host:process.env.BD_HOST,
@@ -14,10 +15,27 @@ const initializeDatabase = async() =>{
         //test connection 
         const client = await pool.connect(); 
         console.log('Connected to PG Database '); 
-
+        //Create table Role if don't exist
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS roles (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(50) UNIQUE
+        );
+              `);
+        console.log('role table created');
+        //-- refresh tokens
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS refresh_tokens (
+          id SERIAL PRIMARY KEY,
+          user_id INT REFERENCES users(id),
+          token TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          );
+              `);
+        console.log('refresh_tokens table created');
         //Create tables if don't exist
         await client.query(`
-                CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(50) UNIQUE NOT NULL,
         email VARCHAR(100) UNIQUE NOT NULL,
@@ -29,54 +47,9 @@ const initializeDatabase = async() =>{
             `);
             console.log('user table created'); 
 
-            await client.query(`
-                 CREATE TABLE IF NOT EXISTS categories (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) UNIQUE NOT NULL,
-        description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-                `);
-            console.log('Categories table is created '); 
 
-            await client.query(`
-                
-      CREATE TABLE IF NOT EXISTS posts (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
-        views INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-                `);
-                 console.log('posts table is created '); 
 
-                 await client.query(`
-                    CREATE TABLE IF NOT EXISTS comments (
-        id SERIAL PRIMARY KEY,
-        content TEXT NOT NULL,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-                    `);
-                    console.log('comments table is created '); 
-
-            const categoriesResult = await client.query('SELECT COUNT(*) FROM categories');
-            if(parseInt(categoriesResult.rows[0].count) === 0 ){
-                await client.query(`
-                      INSERT INTO categories (name, description) VALUES
-        ('Technology', 'Posts about technology, programming, and digital trends'),
-        ('Lifestyle', 'Articles about lifestyle, health, and wellness'),
-        ('Travel', 'Travel experiences, tips, and destination guides'),
-        ('Food', 'Recipes, restaurant reviews, and cooking tips'),
-        ('Business', 'Business advice, entrepreneurship, and career development')
-                    `);
-                    console.log(' default categories insert');
-            }
+        
             client.release();
 
     }
