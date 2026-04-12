@@ -1,28 +1,23 @@
 const pool = require("../config/database");
 
-// const findUserByPhone = async (phone) => {
-//   const result = await pool.query(
-//     "SELECT * FROM users WHERE phone=$1",
-//     [phone]
-//   );
-//   return result.rows[0];
-// };
-
-// const createUser = async (name, phone, role_id) => {
-//   const result = await pool.query(
-//     `INSERT INTO users (name, phone, role_id)
-//      VALUES ($1, $2, $3) RETURNING *`,
-//     [name, phone, role_id]
-//   );
-//   return result.rows[0];
-// };
-
 // 🔍 check user
 const findUserByEmailOrPhone = async (email, phone) => {
   const result = await pool.query(
-    "SELECT * FROM users WHERE email=$1 OR phone=$2",
+    `
+    SELECT 
+      users.id,
+      users.name,
+      users.email,
+      users.phone,
+      users.password,
+      roles.name AS role
+    FROM users
+    JOIN roles ON users.role_id = roles.id
+    WHERE users.email = $1 OR users.phone = $2
+    `,
     [email, phone]
   );
+
   return result.rows[0];
 };
 
@@ -53,4 +48,3 @@ module.exports = {
   createUser,
 };
 
-module.exports = { findUserByPhone, createUser };
