@@ -1,6 +1,6 @@
 
 const { Pool }  = require('pg') ; 
-// require('dotenv').config(); 
+require('dotenv').config(); 
 const pool = new Pool({
   database:process.env.DB_NAME, 
     host:process.env.BD_HOST,
@@ -67,19 +67,7 @@ const initializeDatabase = async() =>{
 
 
 
-/*
-pool.connect((err , client , res) => {
-    if(err) { 
-        console.error('error message to db' , err.stack);
-    }
-    else{
-        console.log('success connect db ');
-    }
-})
-*/
-
-
 // Run initialize function 
 initializeDatabase(); 
 
-module.exports = {pool} ; 
+module.exports = pool; 
