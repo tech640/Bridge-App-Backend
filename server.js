@@ -1,12 +1,15 @@
 const express = require('express');
 require('dotenv').config();
 const path = require('path');
+const otpRoutes = require('./routes/otpRoutes');
 
 const app = express();
 
 // Database connection
 require('./config/database');
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/auth/otp', otpRoutes);
 
 //Test 
 app.get('/test', (req, res) => {
