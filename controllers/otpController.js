@@ -1,31 +1,23 @@
-const otpService = require('../services/otpService');
-const authModel = require('../models/authModel');
-const jwt = require('jsonwebtoken');
+const otpService = require("../services/otpService");
+const authModel = require("../models/authModel");
+const jwt = require("jsonwebtoken");
 
-/**
- * 1) REQUEST OTP
- */
 const requestOtp = async (req, res) => {
     try {
-        const { phone } = req.body;
+        const { email } = req.body;
 
-        console.log("BODY:", req.body);
-
-        if (!phone) {
+        if (!email) {
             return res.status(400).json({
                 success: false,
-                message: "Phone is required"
+                message: "Email is required"
             });
         }
 
-        // توليد OTP
-        const otp = await otpService.sendOtp(phone);
-
-        console.log(`OTP for ${phone}: ${otp}`);
+        await otpService.sendOtp(email);
 
         return res.json({
             success: true,
-            message: "OTP sent successfully"
+            message: "OTP sent to email"
         });
 
     } catch (error) {
@@ -36,39 +28,29 @@ const requestOtp = async (req, res) => {
     }
 };
 
-
-/**
- * 2) VERIFY OTP
- */
 const verifyOtp = async (req, res) => {
     try {
-        const { phone, otp } = req.body;
+        const { email, otp } = req.body;
 
-        if (!phone || !otp) {
+        if (!email || !otp) {
             return res.status(400).json({
                 success: false,
-                message: "Phone and OTP are required"
+                message: "Email and OTP required"
             });
         }
 
-        // تحقق من OTP
-        await otpService.verifyOtp(phone, otp);
+        await otpService.verifyOtp(email, otp);
 
-        // جلب أو إنشاء user
-        let user = await authModel.getUserByPhone(phone);
+        let user = await authModel.getUserByEmail(email);
 
         if (!user) {
-            user = await authModel.createUserByPhone(phone);
+            user = await authModel.createUserByEmail(email);
         }
 
-        // JWT token
         const token = jwt.sign(
-            {
-                id: user.id,
-                phone: user.phone
-            },
+            { id: user.id, email: user.email },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: "1h" }
         );
 
         return res.json({
@@ -85,8 +67,4 @@ const verifyOtp = async (req, res) => {
     }
 };
 
-
-module.exports = {
-    requestOtp,
-    verifyOtp
-};
+module.exports = { requestOtp, verifyOtp };

@@ -1,7 +1,7 @@
 const { pool } = require('../config/database.js');
 
 // =========================
-// 🔵 EXISTING CODE (DO NOT TOUCH)
+// EXISTING CODE
 // =========================
 
 const createEmployee = async (employee) => {
@@ -21,38 +21,33 @@ const getEmployeeByEmail = async (email) => {
     return result.rows[0];
 };
 
-
 // =========================
-// 🟢 NEW CODE (PHONE / OTP SYSTEM)
+// NEW EMAIL OTP CODE
 // =========================
 
-const getUserByPhone = async (phone) => {
+const getUserByEmail = async (email) => {
     const result = await pool.query(
-        'SELECT * FROM users WHERE phone = $1',
-        [phone]
+        'SELECT * FROM users WHERE email = $1',
+        [email]
     );
     return result.rows[0];
 };
 
-const createUserByPhone = async (phone) => {
+const createUserByEmail = async (email) => {
     const result = await pool.query(
-        'INSERT INTO users (phone) VALUES ($1) RETURNING *',
-        [phone]
+        'INSERT INTO users (email) VALUES ($1) RETURNING *',
+        [email]
     );
     return result.rows[0];
 };
 
-
 // =========================
-// EXPORT ALL FUNCTIONS
+// EXPORT
 // =========================
 
 module.exports = {
-    // existing
     createEmployee,
     getEmployeeByEmail,
-
-    // new (OTP system)
-    getUserByPhone,
-    createUserByPhone
+    getUserByEmail,
+    createUserByEmail
 };
