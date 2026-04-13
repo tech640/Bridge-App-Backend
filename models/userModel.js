@@ -5,15 +5,16 @@ const findUserByEmailOrPhone = async (email, phone) => {
   const result = await pool.query(
     `
     SELECT 
-      users.id,
-      users.name,
-      users.email,
-      users.phone,
-      users.password,
-      roles.name AS role
-    FROM users
-    JOIN roles ON users.role_id = roles.id
-    WHERE users.email = $1 OR users.phone = $2
+  users.id,
+  users.name,
+  users.email,
+  users.phone,
+  users.password,
+  users.role_id, -- ✅ رجعيه
+  roles.name AS role
+FROM users
+JOIN roles ON users.role_id = roles.id
+WHERE users.email = $1 OR users.phone = $2
     `,
     [email, phone]
   );
