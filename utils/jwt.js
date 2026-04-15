@@ -10,16 +10,18 @@ const generateAccessToken = (user) => {
 
 const generateRefreshToken = (user) => {
   return jwt.sign(
-    { 
-      id: user.id ,
-      role: user.role
-    },
+    { id: user.id, role: user.role },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
 };
 
+const verifyToken = (token) => {
+  return jwt.verify(token, process.env.JWT_SECRET);
+};
+
 module.exports = {
   generateAccessToken,
   generateRefreshToken,
+  verifyToken
 };
